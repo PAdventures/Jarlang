@@ -25,6 +25,12 @@ pub fn evaluate(
             ast::Expression::Binary(binary_expression) => {
                 expressions::evaluate_binary_expression(binary_expression, environment)
             }
+            ast::Expression::VariableAssignment(variable_assignment_expression) => {
+                expressions::evaluate_assignment_expression(
+                    variable_assignment_expression,
+                    environment,
+                )
+            }
             _ => {
                 return Err(format!(
                     "This AST Node has not yet been implemented for interpretation: {:#?}",

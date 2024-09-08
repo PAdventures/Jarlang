@@ -2,7 +2,12 @@ use std::ops::{Add, Div, Mul, Rem, Sub};
 
 use crate::{
     frontend::ast,
-    runtime::{environment::Environment, helpers, interpreter, values},
+    runtime::{
+        environment::Environment,
+        helpers,
+        interpreter::{self, evaluate},
+        values,
+    },
 };
 
 pub fn evaluate_digit_binary_expression_result<T>(
@@ -147,5 +152,52 @@ pub fn evaluate_identifier_expression(
     match environment.lookup_variable(ast_node.symbol.to_string()) {
         Some(value) => Ok(value),
         None => Err(format!("Variable \"{}\" does not exist", ast_node.symbol)),
+    }
+}
+
+pub fn evaluate_assignment_expression(
+    ast_node: Box<ast::VariableAssignmentExpression>,
+    environment: &mut Environment,
+) -> Result<values::RuntimeValue, String> {
+    let assignee = match ast_node.assignee {
+        ast::Expression::Identifier(identifier) => identifier,
+        _ => {
+            return Err(format!(
+                "Invalid left hand side expression. Expected identifier, got {:#?}",
+                &ast_node.assignee
+            )
+            .to_string())
+        }
+    };
+
+    let variable_value = match environment.lookup_variable(assignee.symbol.to_owned()) {
+        Some(runtime_value) => runtime_value,
+        None => {
+            return Err(format!(
+                "Unknown variable: {} detected during variable assignment",
+                assignee.symbol
+            )
+            .to_string())
+        }
+    };
+
+    let new_variable_value = match evaluate(ast::Statement::Expression(ast_node.value), environment)
+    {
+        Ok(new_runtime_value) => match helpers::evaluate_variable_type(
+            Some(ast::IdentifierExpression::create(
+                variable_value.as_value_type().as_string(),
+            )),
+            assignee.symbol.to_owned(),
+            new_runtime_value,
+        ) {
+            Ok(runtime_value) => runtime_value,
+            Err(m) => return Err(m),
+        },
+        Err(m) => return Err(m),
+    };
+
+    match environment.assign_variable(assignee.symbol, new_variable_value.to_owned()) {
+        Ok(_) => Ok(new_variable_value),
+        Err(m) => return Err(m),
     }
 }

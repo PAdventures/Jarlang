@@ -1,136 +1,309 @@
-use super::values::RuntimeValue;
+use super::super::frontend::ast;
+use super::values;
 
-pub fn runtime_value_is_digit(runtime_value: &RuntimeValue) -> bool {
+pub fn evaluate_variable_type(
+    value_type: Option<ast::IdentifierExpression>,
+    identifier: String,
+    runtime_val: values::RuntimeValue,
+) -> Result<values::RuntimeValue, String> {
+    if value_type.is_none() {
+        Ok(runtime_val)
+    } else {
+        match value_type.to_owned().unwrap().symbol.as_str() {
+            "i8" => {
+                if runtime_digit_is_i8(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_i8() {
+                        Ok(integer8) => Ok(integer8.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "i16" => {
+                if runtime_digit_is_i16(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_i16() {
+                        Ok(integer16) => Ok(integer16.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "i32" => {
+                if runtime_digit_is_i32(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_i32() {
+                        Ok(integer32) => Ok(integer32.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "i64" => {
+                if runtime_digit_is_i64(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_i64() {
+                        Ok(integer64) => Ok(integer64.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "i128" => {
+                if runtime_digit_is_i128(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_i128() {
+                        Ok(integer128) => Ok(integer128.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "u8" => {
+                if runtime_digit_is_u8(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_u8() {
+                        Ok(unsigned_integer8) => Ok(unsigned_integer8.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "u16" => {
+                if runtime_digit_is_u16(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_u16() {
+                        Ok(unsigned_integer16) => Ok(unsigned_integer16.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "u32" => {
+                if runtime_digit_is_u32(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_u32() {
+                        Ok(unsigned_integer32) => Ok(unsigned_integer32.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "u64" => {
+                if runtime_digit_is_u64(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_u64() {
+                        Ok(unsigned_integer64) => Ok(unsigned_integer64.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "u128" => {
+                if runtime_digit_is_u128(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_u128() {
+                        Ok(unsigned_integer128) => Ok(unsigned_integer128.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "f32" => {
+                if runtime_digit_is_f32(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_f32() {
+                        Ok(float32) => Ok(float32.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "f64" => {
+                if runtime_digit_is_f64(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    match runtime_val.as_f64() {
+                        Ok(float64) => Ok(float64.as_raw()),
+                        Err(m) => Err(m),
+                    }
+                }
+            }
+            "char" => {
+                if runtime_is_char(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    return Err(format!(
+                        "Incorrect runtime value for {}, expected: char, got: {:#?}",
+                        identifier,
+                        runtime_val.as_value_type()
+                    ));
+                }
+            }
+            "str" => {
+                if runtime_is_str(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    return Err(format!(
+                        "Incorrect runtime value for {}, expected: str, got: {:#?}",
+                        identifier,
+                        runtime_val.as_value_type()
+                    ));
+                }
+            }
+            "bool" => {
+                if runtime_is_bool(&runtime_val) {
+                    Ok(runtime_val)
+                } else {
+                    return Err(format!(
+                        "Incorrect runtime value for {}, expected: bool, got: {:#?}",
+                        identifier,
+                        runtime_val.as_value_type()
+                    ));
+                }
+            }
+            _ => {
+                return Err(format!(
+                    "Unexpected variable type given during variable declaration/assignment evaluation, got {}",
+                    value_type.unwrap().symbol.as_str()
+                ))
+            }
+        }
+    }
+}
+
+pub fn runtime_value_is_digit(runtime_value: &values::RuntimeValue) -> bool {
     if runtime_value_is_integer(&runtime_value) || runtime_value_is_float(&runtime_value) {
         return true;
     }
     false
 }
 
-pub fn runtime_value_is_float(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_value_is_float(runtime_value: &values::RuntimeValue) -> bool {
     match &runtime_value {
-        RuntimeValue::Float32(_) | RuntimeValue::Float64(_) => true,
+        values::RuntimeValue::Float32(_) | values::RuntimeValue::Float64(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_value_is_integer(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_value_is_integer(runtime_value: &values::RuntimeValue) -> bool {
     match &runtime_value {
-        RuntimeValue::Integer8(_)
-        | RuntimeValue::Integer16(_)
-        | RuntimeValue::Integer32(_)
-        | RuntimeValue::Integer64(_)
-        | RuntimeValue::Integer128(_)
-        | RuntimeValue::UnsignedInteger8(_)
-        | RuntimeValue::UnsignedInteger16(_)
-        | RuntimeValue::UnsignedInteger32(_)
-        | RuntimeValue::UnsignedInteger64(_)
-        | RuntimeValue::UnsignedInteger128(_) => true,
+        values::RuntimeValue::Integer8(_)
+        | values::RuntimeValue::Integer16(_)
+        | values::RuntimeValue::Integer32(_)
+        | values::RuntimeValue::Integer64(_)
+        | values::RuntimeValue::Integer128(_)
+        | values::RuntimeValue::UnsignedInteger8(_)
+        | values::RuntimeValue::UnsignedInteger16(_)
+        | values::RuntimeValue::UnsignedInteger32(_)
+        | values::RuntimeValue::UnsignedInteger64(_)
+        | values::RuntimeValue::UnsignedInteger128(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_i8(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_i8(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Integer8(_) => true,
+        values::RuntimeValue::Integer8(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_i16(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_i16(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Integer16(_) => true,
+        values::RuntimeValue::Integer16(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_i32(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_i32(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Integer32(_) => true,
+        values::RuntimeValue::Integer32(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_i64(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_i64(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Integer64(_) => true,
+        values::RuntimeValue::Integer64(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_i128(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_i128(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Integer128(_) => true,
+        values::RuntimeValue::Integer128(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_u8(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_u8(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::UnsignedInteger8(_) => true,
+        values::RuntimeValue::UnsignedInteger8(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_u16(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_u16(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::UnsignedInteger16(_) => true,
+        values::RuntimeValue::UnsignedInteger16(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_u32(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_u32(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::UnsignedInteger32(_) => true,
+        values::RuntimeValue::UnsignedInteger32(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_u64(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_u64(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::UnsignedInteger64(_) => true,
+        values::RuntimeValue::UnsignedInteger64(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_u128(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_u128(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::UnsignedInteger128(_) => true,
+        values::RuntimeValue::UnsignedInteger128(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_f32(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_f32(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Float32(_) => true,
+        values::RuntimeValue::Float32(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_digit_is_f64(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_digit_is_f64(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Float64(_) => true,
+        values::RuntimeValue::Float64(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_is_char(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_is_char(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Character(_) => true,
+        values::RuntimeValue::Character(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_is_str(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_is_str(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::String(_) => true,
+        values::RuntimeValue::String(_) => true,
         _ => false,
     }
 }
 
-pub fn runtime_is_bool(runtime_value: &RuntimeValue) -> bool {
+pub fn runtime_is_bool(runtime_value: &values::RuntimeValue) -> bool {
     match runtime_value {
-        RuntimeValue::Boolean(_) => true,
+        values::RuntimeValue::Boolean(_) => true,
         _ => false,
     }
 }

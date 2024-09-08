@@ -150,10 +150,41 @@ impl Parser {
     }
 
     fn parse_expression(&mut self) -> Result<ast::Expression, String> {
-        match self.parse_additive_expression() {
+        match self.parse_assignment_expression() {
             Ok(expression) => Ok(expression),
             Err(m) => return Err(m),
         }
+    }
+
+    fn parse_assignment_expression(&mut self) -> Result<ast::Expression, String> {
+        let left = match self.parse_additive_expression() {
+            Ok(expression) => expression,
+            Err(m) => return Err(m),
+        };
+
+        if self.at().token_type == TokenType::Equals {
+            self.eat();
+            let value = match self.parse_additive_expression() {
+                Ok(expression) => expression,
+                Err(m) => return Err(m),
+            };
+            match self.expect(TokenType::SemiColon) {
+                Ok(_) => (),
+                Err(token_type) => {
+                    return Err(format!(
+                        "Assignment expressions must end with a Semicolon, got: {:#?}",
+                        token_type
+                    )
+                    .to_string())
+                }
+            }
+
+            return Ok(ast::Expression::VariableAssignment(Box::new(
+                ast::VariableAssignmentExpression::create(left, value),
+            )));
+        }
+
+        Ok(left)
     }
 
     fn parse_additive_expression(&mut self) -> Result<ast::Expression, String> {

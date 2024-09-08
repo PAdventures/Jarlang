@@ -15,6 +15,7 @@ pub enum NodeType {
 
     // Expressions
     BinaryExpression,
+    VariableAssignmentExpression,
 }
 
 // Statements
@@ -72,6 +73,7 @@ impl VariableDeclarationStatement {
 #[derive(Debug, Clone)]
 pub enum Expression {
     Binary(Box<BinaryExpression>),
+    VariableAssignment(Box<VariableAssignmentExpression>),
     Identifier(IdentifierExpression),
     Integer(IntegerLiteral),
     Float(FloatLiteral),
@@ -94,6 +96,23 @@ impl BinaryExpression {
             left,
             right,
             operator,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct VariableAssignmentExpression {
+    pub kind: NodeType,
+    pub assignee: Expression,
+    pub value: Expression,
+}
+
+impl VariableAssignmentExpression {
+    pub fn create(assignee: Expression, value: Expression) -> Self {
+        VariableAssignmentExpression {
+            kind: NodeType::VariableAssignmentExpression,
+            assignee,
+            value,
         }
     }
 }

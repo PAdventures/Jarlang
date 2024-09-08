@@ -20,6 +20,29 @@ pub enum ValueType {
     Null,
 }
 
+impl ValueType {
+    pub fn as_string(self) -> String {
+        match self {
+            ValueType::Integer8 => String::from("i8"),
+            ValueType::Integer16 => String::from("i16"),
+            ValueType::Integer32 => String::from("i32"),
+            ValueType::Integer64 => String::from("i64"),
+            ValueType::Integer128 => String::from("i128"),
+            ValueType::UnsignedInteger8 => String::from("u8"),
+            ValueType::UnsignedInteger16 => String::from("u16"),
+            ValueType::UnsignedInteger32 => String::from("u32"),
+            ValueType::UnsignedInteger64 => String::from("u64"),
+            ValueType::UnsignedInteger128 => String::from("u128"),
+            ValueType::Float32 => String::from("f32"),
+            ValueType::Float64 => String::from("f64"),
+            ValueType::String => String::from("str"),
+            ValueType::Character => String::from("char"),
+            ValueType::Boolean => String::from("bool"),
+            ValueType::Null => String::from("null"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum RuntimeValue {
     Integer8(Integer8Value),
