@@ -1,6 +1,6 @@
 # Jarlang
 
-Jarlang is an interpreted programming language which mainly uses syntax similar to Rust and Javascript. Jarlang's interpreter in written in Rust.
+Jarlang is an interpreted programming language which mainly uses syntax similar to Rust and Javascript. Jarlang's interpreter is written in Rust.
 
 ### Note
 
