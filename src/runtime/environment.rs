@@ -1,10 +1,10 @@
-use super::values::RuntimeValue;
+use super::values;
 use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Environment {
     parent: Option<Box<Environment>>,
-    variables: HashMap<String, RuntimeValue>,
+    variables: HashMap<String, values::RuntimeValue>,
     constants: Vec<String>,
 }
 
@@ -17,10 +17,35 @@ impl Environment {
         }
     }
 
+    pub fn init_global_scope(&mut self) -> Result<(), String> {
+        match self.parent {
+            Some(_) => return Err("Cannot create global variables in a child scope".to_string()),
+            None => (),
+        }
+
+        self.declare_variable(
+            String::from("true"),
+            values::BooleanValue::create(true).as_raw(),
+            true,
+        )?;
+        self.declare_variable(
+            String::from("false"),
+            values::BooleanValue::create(false).as_raw(),
+            true,
+        )?;
+        self.declare_variable(
+            String::from("null"),
+            values::NullValue::create().as_raw(),
+            true,
+        )?;
+
+        Ok(())
+    }
+
     pub fn declare_variable(
         &mut self,
         name: String,
-        value: RuntimeValue,
+        value: values::RuntimeValue,
         constant: bool,
     ) -> Result<(), String> {
         match self.variables.get(&name) {
@@ -42,7 +67,11 @@ impl Environment {
         Ok(())
     }
 
-    pub fn assign_variable(&mut self, name: String, value: RuntimeValue) -> Result<(), String> {
+    pub fn assign_variable(
+        &mut self,
+        name: String,
+        value: values::RuntimeValue,
+    ) -> Result<(), String> {
         let environment = match self.resolve_variable(name.to_string()) {
             Ok(env) => env,
             Err(m) => return Err(m),
@@ -60,7 +89,7 @@ impl Environment {
         Ok(())
     }
 
-    pub fn lookup_variable(&mut self, name: String) -> Option<RuntimeValue> {
+    pub fn lookup_variable(&mut self, name: String) -> Option<values::RuntimeValue> {
         let environment = match self.resolve_variable(name.to_string()) {
             Ok(env) => env,
             Err(_) => return None,

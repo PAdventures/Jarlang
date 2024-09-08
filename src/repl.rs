@@ -1,7 +1,6 @@
 use super::frontend::parser;
 use super::runtime::environment::Environment;
 use super::runtime::interpreter;
-use super::runtime::values;
 
 use std::borrow::BorrowMut;
 use std::io::{self, BufRead, Write};
@@ -13,21 +12,10 @@ pub fn start_session() -> Result<(), String> {
     let mut parser = parser::Parser::new();
     let mut environment = Environment::create(None);
 
-    environment.declare_variable(
-        String::from("true"),
-        values::BooleanValue::create(true).as_raw(),
-        true,
-    )?;
-    environment.declare_variable(
-        String::from("false"),
-        values::BooleanValue::create(false).as_raw(),
-        true,
-    )?;
-    environment.declare_variable(
-        String::from("null"),
-        values::NullValue::create().as_raw(),
-        true,
-    )?;
+    match environment.init_global_scope() {
+        Ok(_) => (),
+        Err(m) => return Err(m),
+    }
 
     loop {
         print!("> ");

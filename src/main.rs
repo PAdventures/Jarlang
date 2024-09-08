@@ -8,7 +8,7 @@ use command::CLI;
 use clap::Parser;
 use frontend::parser;
 use runtime::environment::Environment;
-use runtime::{interpreter, values};
+use runtime::interpreter;
 use std::borrow::BorrowMut;
 use std::fs;
 use std::process::exit;
@@ -27,21 +27,13 @@ fn run_file(path: &str) -> Result<(), String> {
     let mut parser = parser::Parser::new();
     let mut environment = Environment::create(None);
 
-    environment.declare_variable(
-        String::from("true"),
-        values::BooleanValue::create(true).as_raw(),
-        true,
-    )?;
-    environment.declare_variable(
-        String::from("false"),
-        values::BooleanValue::create(false).as_raw(),
-        true,
-    )?;
-    environment.declare_variable(
-        String::from("null"),
-        values::NullValue::create().as_raw(),
-        true,
-    )?;
+    match environment.init_global_scope() {
+        Ok(_) => (),
+        Err(m) => {
+            println!("{}", m);
+            exit(1);
+        }
+    }
 
     let program = match parser.produce_ast(buff.as_str()) {
         Ok(program_statement) => program_statement,
