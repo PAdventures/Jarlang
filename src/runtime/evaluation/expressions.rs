@@ -165,8 +165,7 @@ pub fn evaluate_assignment_expression(
             return Err(format!(
                 "Invalid left hand side expression. Expected identifier, got {:#?}",
                 &ast_node.assignee
-            )
-            .to_string())
+            ))
         }
     };
 
@@ -176,8 +175,7 @@ pub fn evaluate_assignment_expression(
             return Err(format!(
                 "Unknown variable: {} detected during variable assignment",
                 assignee.symbol
-            )
-            .to_string())
+            ))
         }
     };
 
